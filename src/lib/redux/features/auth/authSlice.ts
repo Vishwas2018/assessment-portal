@@ -1,12 +1,9 @@
-// src/app/store/features/auth/authSlice.ts
+// src/lib/redux/features/auth/authSlice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import axios from 'axios';
+import axiosInstance from '../../../axios';
 
 // Define initial state
-// src/lib/redux/features/auth/authSlice.ts
-// Replace the current initialState with this:
-
 const initialState = {
   token: null,
   isAuthenticated: false,
@@ -18,58 +15,44 @@ const initialState = {
 // Create async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axiosInstance.post('/api/auth/login', { email, password });
       
       // Store token in localStorage
       localStorage.setItem('token', res.data.token);
       
       return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response.data.message);
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Login failed');
     }
   }
 );
 
 export const register = createAsyncThunk(
   'auth/register',
-  async ({ name, email, password, role }, { rejectWithValue }) => {
+  async ({ name, email, password, role }: { name: string; email: string; password: string; role?: string }, { rejectWithValue }) => {
     try {
-      const res = await axios.post('/api/auth/register', { name, email, password, role });
+      const res = await axiosInstance.post('/api/auth/register', { name, email, password, role });
       
       // Store token in localStorage
       localStorage.setItem('token', res.data.token);
       
       return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response.data.message);
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Registration failed');
     }
   }
 );
 
 export const loadUser = createAsyncThunk(
   'auth/loadUser',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Get token from state
-      const token = getState().auth.token;
-      
-      if (!token) {
-        return rejectWithValue('No token');
-      }
-      
-      // Set headers
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      
-      const res = await axios.get('/api/auth/me', config);
+      const res = await axiosInstance.get('/api/auth/me');
       return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response.data.message);
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to load user');
     }
   }
 );
@@ -78,26 +61,23 @@ export const loadUser = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  // In your authSlice.ts, add this to your reducers:
-
-reducers: {
-  logout: (state) => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+  reducers: {
+    logout: (state) => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
+      state.token = null;
+      state.isAuthenticated = false;
+      state.user = null;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
+      state.isAuthenticated = true;
     }
-    state.token = null;
-    state.isAuthenticated = false;
-    state.user = null;
   },
-  clearError: (state) => {
-    state.error = null;
-  },
-  // Add this new reducer
-  setToken: (state, action) => {
-    state.token = action.payload;
-    state.isAuthenticated = true;
-  }
-},
   extraReducers: (builder) => {
     builder
       // Login cases
@@ -149,5 +129,5 @@ reducers: {
   }
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, setToken } = authSlice.actions;
 export default authSlice.reducer;
