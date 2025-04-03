@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable server components
+  // Enable React strict mode
   reactStrictMode: true,
   // Increase memory limit for build on Vercel
   experimental: {
@@ -10,6 +10,11 @@ const nextConfig = {
   // Configure image domains if using Next Image
   images: {
     domains: ['placeholder.com'],
+  },
+  // Address hydration issues with a custom compiler
+  compiler: {
+    // Suppress specific hydration warnings if needed
+    styledComponents: true,
   },
   // For handling rewrites if needed
   async rewrites() {

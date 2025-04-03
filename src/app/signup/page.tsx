@@ -9,6 +9,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const [mounted, setMounted] = useState(false);
+  
+  // Add this useEffect
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Use the mounted state to control initial rendering
+  if (!mounted) {
+    // Return minimal UI during server-side rendering
+    return <div className="min-h-screen bg-black"></div>;
+  }
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
